@@ -231,19 +231,50 @@ class AssetApi {
   /// * [bool] isThumb:
   ///
   /// * [bool] isWeb:
-  Future<Object?> downloadFile(String aid, String did, { bool? isThumb, bool? isWeb, }) async {
+  Future<void> downloadFile(String aid, String did, { bool? isThumb, bool? isWeb, }) async {
     final response = await downloadFileWithHttpInfo(aid, did,  isThumb: isThumb, isWeb: isWeb, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
-    // When a remote server returns no body with a status of 204, we shall not decode it.
-    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
-    // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
-    
+  }
+
+  /// Performs an HTTP 'POST /asset/download' operation and returns the [Response].
+  /// Parameters:
+  ///
+  /// * [DownloadAssetsDto] downloadAssetsDto (required):
+  Future<Response> downloadFilesWithHttpInfo(DownloadAssetsDto downloadAssetsDto,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/asset/download';
+
+    // ignore: prefer_final_locals
+    Object? postBody = downloadAssetsDto;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>['application/json'];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Parameters:
+  ///
+  /// * [DownloadAssetsDto] downloadAssetsDto (required):
+  Future<void> downloadFiles(DownloadAssetsDto downloadAssetsDto,) async {
+    final response = await downloadFilesWithHttpInfo(downloadAssetsDto,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
-    return null;
   }
 
   /// Performs an HTTP 'GET /asset/download-library' operation and returns the [Response].
@@ -282,19 +313,11 @@ class AssetApi {
   /// Parameters:
   ///
   /// * [num] skip:
-  Future<Object?> downloadLibrary({ num? skip, }) async {
+  Future<void> downloadLibrary({ num? skip, }) async {
     final response = await downloadLibraryWithHttpInfo( skip: skip, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
-    // When a remote server returns no body with a status of 204, we shall not decode it.
-    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
-    // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
-    
-    }
-    return null;
   }
 
   /// 

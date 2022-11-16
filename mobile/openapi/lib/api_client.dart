@@ -248,6 +248,8 @@ class ApiClient {
           return DeviceInfoResponseDto.fromJson(value);
         case 'DeviceTypeEnum':
           return DeviceTypeEnumTypeTransformer().decode(value);
+        case 'DownloadAssetsDto':
+          return DownloadAssetsDto.fromJson(value);
         case 'ExifResponseDto':
           return ExifResponseDto.fromJson(value);
         case 'GetAssetByTimeBucketDto':

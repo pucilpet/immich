@@ -5,6 +5,7 @@
 	import ContextMenu from '$lib/components/shared-components/context-menu/context-menu.svelte';
 	import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
 	import AlbumSelectionModal from '$lib/components/shared-components/album-selection-modal.svelte';
+	import { downloadAssets } from '$lib/stores/download';
 	import { goto } from '$app/navigation';
 
 	import type { PageData } from './$types';
@@ -19,15 +20,22 @@
 	import Close from 'svelte-material-icons/Close.svelte';
 	import CircleIconButton from '$lib/components/shared-components/circle-icon-button.svelte';
 	import DeleteOutline from 'svelte-material-icons/DeleteOutline.svelte';
+	import FolderDownloadOutline from 'svelte-material-icons/FolderDownloadOutline.svelte';
 	import Plus from 'svelte-material-icons/Plus.svelte';
-	import { AlbumResponseDto, api } from '@api';
+	import { AlbumResponseDto, api, AssetResponseDto } from '@api';
 	import {
 		notificationController,
 		NotificationType
 	} from '$lib/components/shared-components/notification/notification';
 	import { assetStore } from '$lib/stores/assets.store';
+	import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 	export let data: PageData;
+
+	interface Downloadable {
+		getFilename: (count: number) => string;
+		makeRequest: (skip: number, config: AxiosRequestConfig) => Promise<AxiosResponse<void, any>>;
+	}
 
 	const deleteSelectedAssetHandler = async () => {
 		try {
@@ -55,6 +63,131 @@
 			});
 			console.error('Error deleteSelectedAssetHandler', e);
 		}
+	};
+
+	const removeDownload = (fileName: string) => {
+		setTimeout(() => {
+			const copy = $downloadAssets;
+			delete copy[fileName];
+			$downloadAssets = copy;
+		}, 2000);
+	};
+
+	const finishDownload = (fileName: string, blob: Blob | void) => {
+		if (!(blob instanceof Blob)) {
+			return;
+		}
+
+		const fileUrl = URL.createObjectURL(blob);
+		const anchor = document.createElement('a');
+		anchor.href = fileUrl;
+		anchor.download = fileName;
+
+		document.body.appendChild(anchor);
+		anchor.click();
+		document.body.removeChild(anchor);
+
+		URL.revokeObjectURL(fileUrl);
+
+		removeDownload(fileName);
+	};
+
+	const startDownload = async (config: Downloadable) => {
+		let fileName = 'archive.zip';
+		let skip = 0;
+		let count = 0;
+		let done = false;
+
+		try {
+			while (!done) {
+				count++;
+				fileName = config.getFilename(count);
+
+				$downloadAssets[fileName] = 0;
+
+				const axiosConfig: AxiosRequestConfig = {
+					responseType: 'blob',
+					onDownloadProgress: function (progressEvent) {
+						const request = this as XMLHttpRequest;
+
+						let total = 0;
+						if (progressEvent.lengthComputable) {
+							total = progressEvent.total;
+						}
+
+						const headerHint = request.getResponseHeader('X-Immich-Content-Length-Hint');
+						if (headerHint) {
+							total = Number(headerHint) || 0;
+						}
+
+						if (total) {
+							const current = progressEvent.loaded;
+							$downloadAssets[fileName] = Math.floor((current / total) * 100);
+						}
+					}
+				};
+
+				const { data, status, headers } = await config.makeRequest(skip, axiosConfig);
+
+				const isNotComplete = headers['x-immich-archive-complete'] === 'false';
+				const fileCount = Number(headers['x-immich-archive-file-count']) || 0;
+				if (isNotComplete && fileCount > 0) {
+					skip += fileCount;
+				} else {
+					done = true;
+				}
+
+				if (status === 200) {
+					finishDownload(fileName, data);
+				}
+			}
+
+			return true;
+		} catch (e) {
+			removeDownload(fileName);
+			console.error('Error downloading file ', e);
+			notificationController.show({
+				type: NotificationType.Error,
+				message: 'Error downloading file, check console for more details.'
+			});
+			return false;
+		}
+	};
+
+	const handleDownloadAssets = async () => {
+		const assets = Array.from($selectedAssets);
+		let success = true;
+
+		if (assets.length === 1) {
+			const asset = assets[0];
+			const imageName = asset.exifInfo?.imageName || asset.id;
+			const imageExtension = asset.originalPath.split('.')[1];
+			const imageFileName = imageName + '.' + imageExtension;
+
+			success = await startDownload({
+				getFilename: () => imageFileName,
+				makeRequest: (_, config) =>
+					api.assetApi.downloadFile(asset.deviceAssetId, asset.deviceId, false, false, config)
+			});
+		} else {
+			const assetIds = assets.map((a) => a.id);
+			success = await startDownload({
+				getFilename: (count) => `archive${count === 1 ? '' : count}.zip`,
+				makeRequest: (skip, config) =>
+					api.assetApi.downloadFiles({ assetIds, skip: skip || undefined }, config)
+			});
+		}
+
+		if (success) {
+			assetInteractionStore.clearMultiselect();
+		}
+	};
+
+	const handleDownloadLibrary = () => {
+		startDownload({
+			getFilename: (count) => `library${count === 1 ? '' : count}.zip`,
+			makeRequest: (skip, config) => api.assetApi.downloadLibrary(skip || undefined, config)
+		});
 	};
 
 	let contextMenuPosition = { x: 0, y: 0 };
@@ -130,6 +263,11 @@
 			<svelte:fragment slot="trailing">
 				<CircleIconButton title="Add" logo={Plus} on:click={handleShowMenu} />
 				<CircleIconButton
+					title="Download"
+					logo={FolderDownloadOutline}
+					on:click={handleDownloadAssets}
+				/>
+				<CircleIconButton
 					title="Delete"
 					logo={DeleteOutline}
 					on:click={deleteSelectedAssetHandler}
@@ -140,6 +278,7 @@
 		<NavigationBar
 			user={data.user}
 			on:uploadClicked={() => openFileUploadDialog(UploadType.GENERAL)}
+			on:downloadClicked={handleDownloadLibrary}
 		/>
 	{/if}
 

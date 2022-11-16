@@ -16,6 +16,8 @@ import {
   UploadedFile,
   Header,
   Put,
+  StreamableFile,
+  HttpStatus,
 } from '@nestjs/common';
 import { Authenticated } from '../../decorators/authenticated.decorator';
 import { AssetService } from './asset.service';
@@ -53,11 +55,8 @@ import { CheckExistingAssetsDto } from './dto/check-existing-assets.dto';
 import { CheckExistingAssetsResponseDto } from './response-dto/check-existing-assets-response.dto';
 import { UpdateAssetDto } from './dto/update-asset.dto';
 import { DownloadDto } from './dto/download-library.dto';
-import {
-  IMMICH_ARCHIVE_COMPLETE,
-  IMMICH_ARCHIVE_FILE_COUNT,
-  IMMICH_CONTENT_LENGTH_HINT,
-} from '../../constants/download.constant';
+import { DownloadAssetsDto } from './dto/download-assets.dto';
+import { sendArchive } from '../../utils/send-archive.util';
 
 @Authenticated()
 @ApiBearerAuth()
@@ -136,8 +135,19 @@ export class AssetController {
     @GetAuthUser() authUser: AuthUserDto,
     @Response({ passthrough: true }) res: Res,
     @Query(new ValidationPipe({ transform: true })) query: ServeFileDto,
-  ): Promise<any> {
+  ): Promise<StreamableFile> {
     return this.assetService.downloadFile(query, res);
+  }
+
+  @Post('/download')
+  @HttpCode(HttpStatus.OK)
+  async downloadFiles(
+    @GetAuthUser() authUser: AuthUserDto,
+    @Body(ValidationPipe) dto: DownloadAssetsDto,
+    @Response({ passthrough: true }) res: Res,
+  ): Promise<StreamableFile> {
+    const archive = await this.assetService.downloadAssets(dto);
+    return sendArchive(res, archive);
   }
 
   @Get('/download-library')
@@ -145,13 +155,9 @@ export class AssetController {
     @GetAuthUser() authUser: AuthUserDto,
     @Query(new ValidationPipe({ transform: true })) dto: DownloadDto,
     @Response({ passthrough: true }) res: Res,
-  ): Promise<any> {
-    const { stream, fileName, fileSize, fileCount, complete } = await this.assetService.downloadLibrary(authUser, dto);
-    res.attachment(fileName);
-    res.setHeader(IMMICH_CONTENT_LENGTH_HINT, fileSize);
-    res.setHeader(IMMICH_ARCHIVE_FILE_COUNT, fileCount);
-    res.setHeader(IMMICH_ARCHIVE_COMPLETE, `${complete}`);
-    return stream;
+  ): Promise<StreamableFile> {
+    const archive = await this.assetService.downloadLibrary(authUser, dto);
+    return sendArchive(res, archive);
   }
 
   @Get('/file')

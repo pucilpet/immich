@@ -808,6 +808,31 @@ export type DeviceTypeEnum = typeof DeviceTypeEnum[keyof typeof DeviceTypeEnum];
 /**
  * 
  * @export
+ * @interface DownloadAssetsDto
+ */
+export interface DownloadAssetsDto {
+    /**
+     * 
+     * @type {string}
+     * @memberof DownloadAssetsDto
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof DownloadAssetsDto
+     */
+    'assetIds': Array<string>;
+    /**
+     * 
+     * @type {number}
+     * @memberof DownloadAssetsDto
+     */
+    'skip'?: number;
+}
+/**
+ * 
+ * @export
  * @interface ExifResponseDto
  */
 export interface ExifResponseDto {
@@ -2759,6 +2784,45 @@ export const AssetApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @param {DownloadAssetsDto} downloadAssetsDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        downloadFiles: async (downloadAssetsDto: DownloadAssetsDto, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'downloadAssetsDto' is not null or undefined
+            assertParamExists('downloadFiles', 'downloadAssetsDto', downloadAssetsDto)
+            const localVarPath = `/asset/download`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(downloadAssetsDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {number} [skip] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3392,8 +3456,18 @@ export const AssetApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async downloadFile(aid: string, did: string, isThumb?: boolean, isWeb?: boolean, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+        async downloadFile(aid: string, did: string, isThumb?: boolean, isWeb?: boolean, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.downloadFile(aid, did, isThumb, isWeb, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {DownloadAssetsDto} downloadAssetsDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async downloadFiles(downloadAssetsDto: DownloadAssetsDto, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.downloadFiles(downloadAssetsDto, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3402,7 +3476,7 @@ export const AssetApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async downloadLibrary(skip?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+        async downloadLibrary(skip?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.downloadLibrary(skip, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -3598,8 +3672,17 @@ export const AssetApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        downloadFile(aid: string, did: string, isThumb?: boolean, isWeb?: boolean, options?: any): AxiosPromise<object> {
+        downloadFile(aid: string, did: string, isThumb?: boolean, isWeb?: boolean, options?: any): AxiosPromise<void> {
             return localVarFp.downloadFile(aid, did, isThumb, isWeb, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {DownloadAssetsDto} downloadAssetsDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        downloadFiles(downloadAssetsDto: DownloadAssetsDto, options?: any): AxiosPromise<void> {
+            return localVarFp.downloadFiles(downloadAssetsDto, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3607,7 +3690,7 @@ export const AssetApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        downloadLibrary(skip?: number, options?: any): AxiosPromise<object> {
+        downloadLibrary(skip?: number, options?: any): AxiosPromise<void> {
             return localVarFp.downloadLibrary(skip, options).then((request) => request(axios, basePath));
         },
         /**
@@ -3797,6 +3880,17 @@ export class AssetApi extends BaseAPI {
      */
     public downloadFile(aid: string, did: string, isThumb?: boolean, isWeb?: boolean, options?: AxiosRequestConfig) {
         return AssetApiFp(this.configuration).downloadFile(aid, did, isThumb, isWeb, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {DownloadAssetsDto} downloadAssetsDto 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AssetApi
+     */
+    public downloadFiles(downloadAssetsDto: DownloadAssetsDto, options?: AxiosRequestConfig) {
+        return AssetApiFp(this.configuration).downloadFiles(downloadAssetsDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

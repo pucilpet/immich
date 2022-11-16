@@ -34,6 +34,7 @@ doc/DeleteAssetStatus.md
 doc/DeviceInfoApi.md
 doc/DeviceInfoResponseDto.md
 doc/DeviceTypeEnum.md
+doc/DownloadAssetsDto.md
 doc/ExifResponseDto.md
 doc/GetAssetByTimeBucketDto.md
 doc/GetAssetCountByTimeBucketDto.md
@@ -121,6 +122,7 @@ lib/model/delete_asset_response_dto.dart
 lib/model/delete_asset_status.dart
 lib/model/device_info_response_dto.dart
 lib/model/device_type_enum.dart
+lib/model/download_assets_dto.dart
 lib/model/exif_response_dto.dart
 lib/model/get_asset_by_time_bucket_dto.dart
 lib/model/get_asset_count_by_time_bucket_dto.dart

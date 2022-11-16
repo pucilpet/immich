@@ -4,6 +4,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
 	import TrayArrowUp from 'svelte-material-icons/TrayArrowUp.svelte';
+	import TrayArrowDown from 'svelte-material-icons/TrayArrowDown.svelte';
 	import { clickOutside } from '../../utils/click-outside';
 	import { api, UserResponseDto } from '@api';
 	import ThemeButton from './theme-button.svelte';
@@ -43,6 +44,11 @@
 		await fetch('auth/logout', { method: 'POST' });
 
 		goto(data.redirectUri || '/auth/login');
+	};
+
+	const handleDownload = () => {
+		shouldShowAccountInfoPanel = false;
+		dispatch('downloadClicked');
 	};
 </script>
 
@@ -159,6 +165,20 @@
 			</p>
 
 			<p class="text-sm text-gray-500 dark:text-immich-dark-fg">{user.email}</p>
+
+			<div class="my-4">
+				<hr class="dark:border-immich-dark-bg" />
+			</div>
+
+			<span class="flex justify-center">
+				<button
+					on:click={handleDownload}
+					class="immich-text-button dark:hover:bg-immich-dark-primary/25 dark:text-immich-dark-fg"
+				>
+					<TrayArrowDown size="20" />
+					<span>Download Library</span>
+				</button>
+			</span>
 
 			<div class="my-4">
 				<hr class="dark:border-immich-dark-bg" />

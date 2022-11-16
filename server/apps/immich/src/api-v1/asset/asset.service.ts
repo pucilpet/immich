@@ -43,6 +43,8 @@ import { CheckExistingAssetsResponseDto } from './response-dto/check-existing-as
 import { UpdateAssetDto } from './dto/update-asset.dto';
 import { DownloadService } from '../../modules/download/download.service';
 import { DownloadDto } from './dto/download-library.dto';
+import { DownloadAssetsDto } from './dto/download-assets.dto';
+import { orderBy, sortBy } from 'lodash';
 
 const fileInfo = promisify(stat);
 
@@ -144,10 +146,18 @@ export class AssetService {
     return mapAsset(updatedAsset);
   }
 
-  public async downloadLibrary(user: AuthUserDto, dto: DownloadDto) {
-    const assets = await this._assetRepository.getAllByUserId(user.id, dto.skip);
+  public async downloadAssets(dto: DownloadAssetsDto) {
+    const assets = await this._assetRepository.getByIds(dto.assetIds);
+    const ordered = orderBy(assets, ['exif.dateTimeOriginal'], ['asc']).slice(dto.skip || 0);
 
-    return this.downloadService.downloadArchive(dto.name || `library`, assets);
+    return this.downloadService.downloadArchive(dto.name || `archive`, ordered);
+  }
+
+  public async downloadLibrary(user: AuthUserDto, dto: DownloadDto) {
+    const assets = await this._assetRepository.getAllByUserId(user.id);
+    const ordered = orderBy(assets, ['exif.dateTimeOriginal'], ['asc']).slice(dto.skip || 0);
+
+    return this.downloadService.downloadArchive(dto.name || `library`, ordered);
   }
 
   public async downloadFile(query: ServeFileDto, res: Res) {

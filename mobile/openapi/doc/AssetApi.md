@@ -13,6 +13,7 @@ Method | HTTP request | Description
 [**checkExistingAssets**](AssetApi.md#checkexistingassets) | **POST** /asset/exist | 
 [**deleteAsset**](AssetApi.md#deleteasset) | **DELETE** /asset | 
 [**downloadFile**](AssetApi.md#downloadfile) | **GET** /asset/download | 
+[**downloadFiles**](AssetApi.md#downloadfiles) | **POST** /asset/download | 
 [**downloadLibrary**](AssetApi.md#downloadlibrary) | **GET** /asset/download-library | 
 [**getAllAssets**](AssetApi.md#getallassets) | **GET** /asset | 
 [**getAssetById**](AssetApi.md#getassetbyid) | **GET** /asset/assetById/{assetId} | 
@@ -176,7 +177,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **downloadFile**
-> Object downloadFile(aid, did, isThumb, isWeb)
+> downloadFile(aid, did, isThumb, isWeb)
 
 
 
@@ -197,8 +198,7 @@ final isThumb = true; // bool |
 final isWeb = true; // bool | 
 
 try {
-    final result = api_instance.downloadFile(aid, did, isThumb, isWeb);
-    print(result);
+    api_instance.downloadFile(aid, did, isThumb, isWeb);
 } catch (e) {
     print('Exception when calling AssetApi->downloadFile: $e\n');
 }
@@ -215,7 +215,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+void (empty response body)
 
 ### Authorization
 
@@ -224,12 +224,58 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/json
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **downloadFiles**
+> downloadFiles(downloadAssetsDto)
+
+
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure HTTP Bearer authorization: bearer
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearer').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearer').setAccessToken(yourTokenGeneratorFunction);
+
+final api_instance = AssetApi();
+final downloadAssetsDto = DownloadAssetsDto(); // DownloadAssetsDto | 
+
+try {
+    api_instance.downloadFiles(downloadAssetsDto);
+} catch (e) {
+    print('Exception when calling AssetApi->downloadFiles: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **downloadAssetsDto** | [**DownloadAssetsDto**](DownloadAssetsDto.md)|  | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **downloadLibrary**
-> Object downloadLibrary(skip)
+> downloadLibrary(skip)
 
 
 
@@ -247,8 +293,7 @@ final api_instance = AssetApi();
 final skip = 8.14; // num | 
 
 try {
-    final result = api_instance.downloadLibrary(skip);
-    print(result);
+    api_instance.downloadLibrary(skip);
 } catch (e) {
     print('Exception when calling AssetApi->downloadLibrary: $e\n');
 }
@@ -262,7 +307,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+void (empty response body)
 
 ### Authorization
 
@@ -271,7 +316,7 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/json
+ - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
