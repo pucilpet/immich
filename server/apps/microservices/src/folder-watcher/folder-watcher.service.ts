@@ -25,9 +25,13 @@ export class FolderWatcherService {
             awaitWriteFinish: true,
           },
         )
-        .on('all', (event, path) => {
-          this.log.debug(`Event ${event} triggered on path ${path}`);
-        });
+        .on('add', (path, stats) => {
+          this.log.debug(`File [${stats?.ino}] ${path} has been added`);
+        })
+        .on('change', (path, stats) => {
+          this.log.debug(`File [${stats?.ino}]  ${path} has been change`);
+        })
+        .on('unlink', (path) => this.log.debug(`File ${path} has been removed`));
     }
   }
 }
