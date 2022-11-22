@@ -18,6 +18,7 @@ import { MachineLearningProcessor } from './processors/machine-learning.processo
 import { MetadataExtractionProcessor } from './processors/metadata-extraction.processor';
 import { ThumbnailGeneratorProcessor } from './processors/thumbnail.processor';
 import { VideoTranscodeProcessor } from './processors/video-transcode.processor';
+import { FolderWatcherService } from './folder-watcher/folder-watcher.service';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { VideoTranscodeProcessor } from './processors/video-transcode.processor'
     VideoTranscodeProcessor,
     GenerateChecksumProcessor,
     MachineLearningProcessor,
+    FolderWatcherService,
   ],
   exports: [],
 })

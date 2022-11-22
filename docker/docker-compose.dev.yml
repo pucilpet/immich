@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   immich-server:
@@ -11,6 +11,7 @@ services:
     volumes:
       - ../server:/usr/src/app
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${WATCH_LOCATION}:/usr/src/app/watch:ro
       - /usr/src/app/node_modules
     ports:
       - 9230:9230
@@ -50,6 +51,7 @@ services:
     volumes:
       - ../server:/usr/src/app
       - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - ${WATCH_LOCATION}:/usr/src/app/watch:ro
       - /usr/src/app/node_modules
     env_file:
       - .env

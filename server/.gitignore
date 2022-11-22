@@ -37,6 +37,7 @@ lerna-debug.log*
 .env
 dist/
 upload/
+watch/
 tmp/
 core
 .reverse-geocoding-dump/
