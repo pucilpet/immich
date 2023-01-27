@@ -12,10 +12,7 @@ import { TagModule } from '../tag/tag.module';
 import { AlbumModule } from '../album/album.module';
 import { StorageModule } from '@app/storage';
 
-const ASSET_REPOSITORY_PROVIDER = {
-  provide: IAssetRepository,
-  useClass: AssetRepository,
-};
+const ASSET_REPOSITORY_PROVIDER = { provide: IAssetRepository, useClass: AssetRepository };
 
 @Module({
   imports: [
