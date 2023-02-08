@@ -1,4 +1,4 @@
-import { AlbumEntity, AssetAlbumEntity, UserAlbumEntity } from '@app/infra';
+import { AlbumEntity, AssetEntity, UserEntity } from '@app/infra';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder, DataSource, Brackets, Not, IsNull } from 'typeorm';
@@ -35,12 +35,6 @@ export class AlbumRepository implements IAlbumRepository {
     @InjectRepository(AlbumEntity)
     private albumRepository: Repository<AlbumEntity>,
 
-    @InjectRepository(AssetAlbumEntity)
-    private assetAlbumRepository: Repository<AssetAlbumEntity>,
-
-    @InjectRepository(UserAlbumEntity)
-    private userAlbumRepository: Repository<UserAlbumEntity>,
-
     private dataSource: DataSource,
   ) {}
 
@@ -62,10 +56,7 @@ export class AlbumRepository implements IAlbumRepository {
 
   async getCountByUserId(userId: string): Promise<AlbumCountResponseDto> {
     const ownedAlbums = await this.albumRepository.find({ where: { ownerId: userId }, relations: ['sharedUsers'] });
-
-    const sharedAlbums = await this.userAlbumRepository.count({
-      where: { sharedUserId: userId },
-    });
+    const sharedAlbums = await this.albumRepository.count({ where: { sharedUsers: { id: userId } } });
 
     let sharedAlbumCount = 0;
     ownedAlbums.map((album) => {
@@ -83,39 +74,21 @@ export class AlbumRepository implements IAlbumRepository {
       const newAlbum = new AlbumEntity();
       newAlbum.ownerId = ownerId;
       newAlbum.albumName = createAlbumDto.albumName;
+      newAlbum.sharedUsers =
+        createAlbumDto.sharedWithUserIds?.map((value) => {
+          return { id: value } as UserEntity;
+        }) ?? [];
+      newAlbum.assets =
+        createAlbumDto.assetIds?.map((value) => {
+          return { id: value } as AssetEntity;
+        }) ?? [];
 
       const album = await transactionalEntityManager.save(newAlbum);
 
-      // Add shared users
-      if (createAlbumDto.sharedWithUserIds?.length) {
-        for (const sharedUserId of createAlbumDto.sharedWithUserIds) {
-          const newSharedUser = new UserAlbumEntity();
-          newSharedUser.albumId = album.id;
-          newSharedUser.sharedUserId = sharedUserId;
-
-          await transactionalEntityManager.save(newSharedUser);
-        }
-      }
-
-      // Add shared assets
-      const newRecords: AssetAlbumEntity[] = [];
-
-      if (createAlbumDto.assetIds?.length) {
-        for (const assetId of createAlbumDto.assetIds) {
-          const newAssetAlbum = new AssetAlbumEntity();
-          newAssetAlbum.assetId = assetId;
-          newAssetAlbum.albumId = album.id;
-
-          newRecords.push(newAssetAlbum);
-        }
-      }
-
-      if (!album.albumThumbnailAssetId && newRecords.length > 0) {
-        album.albumThumbnailAssetId = newRecords[0].assetId;
+      if (!album.albumThumbnailAssetId && newAlbum.assets.length > 0) {
+        album.albumThumbnailAssetId = newAlbum.assets[0].id;
         await transactionalEntityManager.save(album);
       }
-
-      await transactionalEntityManager.save([...newRecords]);
 
       return album;
     });

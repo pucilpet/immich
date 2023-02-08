@@ -48,7 +48,7 @@ export class AlbumService {
 
     if (validateIsOwner && !isOwner) {
       throw new ForbiddenException('Unauthorized Album Access');
-    } else if (!isOwner && !album.sharedUsers?.some((user) => user.sharedUserId == authUser.id)) {
+    } else if (!isOwner && !album.sharedUsers?.some((user) => user.id == authUser.id)) {
       throw new ForbiddenException('Unauthorized Album Access');
     }
     return album;
@@ -180,18 +180,18 @@ export class AlbumService {
 
   async downloadArchive(authUser: AuthUserDto, albumId: string, dto: DownloadDto) {
     const album = await this._getAlbum({ authUser, albumId, validateIsOwner: false });
-    const assets = (album.assets || []).map((asset) => asset.assetInfo).slice(dto.skip || 0);
+    const assets = (album.assets || []).map((asset) => asset).slice(dto.skip || 0);
 
     return this.downloadService.downloadArchive(album.albumName, assets);
   }
 
   async _checkValidThumbnail(album: AlbumEntity) {
     const assets = album.assets || [];
-    const valid = assets.some((asset) => asset.assetId === album.albumThumbnailAssetId);
+    const valid = assets.some((asset) => asset.id === album.albumThumbnailAssetId);
     if (!valid) {
       let dto: UpdateAlbumDto = {};
       if (assets.length > 0) {
-        const albumThumbnailAssetId = assets[0].assetId;
+        const albumThumbnailAssetId = assets[0].id;
         dto = { albumThumbnailAssetId };
       }
       await this._albumRepository.updateAlbum(album, dto);

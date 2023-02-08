@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 import { SharedLinkEntity } from './shared-link.entity';
@@ -21,6 +22,9 @@ export class AlbumEntity {
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE', onUpdate: 'CASCADE', nullable: false })
   owner!: UserEntity;
 
+  @Column()
+  ownerId!: string;
+
   @Column({ default: 'Untitled Album' })
   albumName!: string;
 
@@ -33,13 +37,13 @@ export class AlbumEntity {
   @Column({ comment: 'Asset ID to be used as thumbnail', type: 'varchar', nullable: true })
   albumThumbnailAssetId!: string | null;
 
-  @ManyToMany(() => UserEntity, (user) => user.id)
+  @ManyToMany(() => UserEntity)
   @JoinTable()
-  sharedUsers?: UserEntity[];
+  sharedUsers!: UserEntity[];
 
-  @ManyToMany(() => AssetEntity, (asset) => asset.id)
+  @ManyToMany(() => AssetEntity)
   @JoinTable()
-  assets?: AssetEntity[];
+  assets!: AssetEntity[];
 
   @OneToMany(() => SharedLinkEntity, (link) => link.album)
   sharedLinks!: SharedLinkEntity[];
