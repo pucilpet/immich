@@ -2,14 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { AssetAlbumEntity } from './asset-album.entity';
 import { SharedLinkEntity } from './shared-link.entity';
-import { UserAlbumEntity } from './user-album.entity';
+import { AssetEntity } from './asset.entity';
 import { UserEntity } from './user.entity';
 
 @Entity('albums')
@@ -17,10 +18,7 @@ export class AlbumEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
-  ownerId!: string;
-
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE', onUpdate: 'CASCADE', nullable: false })
   owner!: UserEntity;
 
   @Column({ default: 'Untitled Album' })
@@ -35,11 +33,13 @@ export class AlbumEntity {
   @Column({ comment: 'Asset ID to be used as thumbnail', type: 'varchar', nullable: true })
   albumThumbnailAssetId!: string | null;
 
-  @OneToMany(() => UserAlbumEntity, (userAlbums) => userAlbums.albumInfo)
-  sharedUsers?: UserAlbumEntity[];
+  @ManyToMany(() => UserEntity, (user) => user.id)
+  @JoinTable()
+  sharedUsers?: UserEntity[];
 
-  @OneToMany(() => AssetAlbumEntity, (assetAlbumEntity) => assetAlbumEntity.albumInfo)
-  assets?: AssetAlbumEntity[];
+  @ManyToMany(() => AssetEntity, (asset) => asset.id)
+  @JoinTable()
+  assets?: AssetEntity[];
 
   @OneToMany(() => SharedLinkEntity, (link) => link.album)
   sharedLinks!: SharedLinkEntity[];
